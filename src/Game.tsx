@@ -4,6 +4,7 @@ type State = {
   cells: (string | null)[];
   isX: boolean;
   winner: string | null;
+  draw: boolean;
 };
 
 type Action = { type: 'CLICK_CELL'; index: number } | { type: 'RESET' };
@@ -39,10 +40,13 @@ const reducer = (state: State, action: Action): State => {
           break;
         }
       }
+      const draw = !winner && newCells.every((cell) => cell !== null);
+
       return {
         cells: newCells,
         isX: !state.isX,
         winner,
+        draw,
       };
     }
     case 'RESET':
@@ -50,6 +54,7 @@ const reducer = (state: State, action: Action): State => {
         cells: Array(9).fill(null),
         isX: true,
         winner: null,
+        draw: false,
       };
     default:
       return state;
@@ -61,6 +66,7 @@ export const Game = () => {
     cells: Array(9).fill(null),
     isX: true,
     winner: null,
+    draw: false,
   });
 
   return (
@@ -68,7 +74,9 @@ export const Game = () => {
       <h2 className='text-2xl font-bold'>
         {state.winner
           ? `Победитель: ${state.winner}`
-          : `Ход: ${state.isX ? '❌' : '⭕'}`}
+          : state.draw
+            ? 'Ничья!'
+            : `Ход: ${state.isX ? '❌' : '⭕'}`}
       </h2>
       <div className='w-90 h-90 border grid grid-cols-3 text-black font-bold '>
         {state.cells.map((value, i) => (
@@ -81,7 +89,7 @@ export const Game = () => {
           </button>
         ))}
       </div>
-      {state.winner && (
+      {(state.winner || state.draw) && (
         <button
           onClick={() => dispatch({ type: 'RESET' })}
           className='mt-4 px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition h-10'
